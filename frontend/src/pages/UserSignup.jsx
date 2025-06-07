@@ -1,32 +1,56 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import userSignup from './UserSignup'
-import { use } from 'react';
 
-function UserLogin() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const[FirstName, setFirstName] = useState('');
-    const[LastName, setLastName] = useState('');
-    const[userData, setUserData] = useState({});
 
-    const submitHandler =  (e) => {
+
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { UserDataContext } from '../context/UserContext'; // ✅ use the named context
+
+function UserSignup() {
+  const navigate = useNavigate(); // ⬅️ should be outside the submit handler
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [FirstName, setFirstName] = useState('');
+  const [LastName, setLastName] = useState('');
+
+  const { user, setUser } = useContext(UserDataContext); // ✅ correct hook usage
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setUserData({
-        email: email,
-        password: password,
-        firstName: FirstName,
-        lastName: LastName
-    })
-    console.log(userData)
-    
+
+    const newUser = {
+      fullname: {
+        firstname: FirstName,
+        lastname: LastName
+      },
+      email,
+      password
+    };
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser);
+
+      if (response.status === 201) {
+        setUser(response.data.user);
+         localStorage.setItem('token', response.data.token);
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
+
     setEmail('');
     setPassword('');
     setFirstName('');
     setLastName('');
+  };
+
+  
 
 
-    }
+
+
   return (
     <div className='p-7 flex flex-col justify-between'>
         <div>
@@ -80,9 +104,9 @@ function UserLogin() {
         onChange={(e)=> setPassword(e.target.value)}/>
         
 
-        <button type="submit" className=' text-xl mb-2 mt-8 w-full bg-black text-white py-3 rounded mt-4'>Sign in</button>
+        <button type="submit" className=' text-xl mb-2 mt-8 w-full bg-black text-white py-3 rounded mt-4'>Create account</button>
 
-        <p className='text-centre mt-4'>already have a Account? <Link to='/login'className='text-blue-400'>Login</Link></p>
+        <p className='text-centre mt-4'>Already have a account? <Link to='/login'className='text-blue-400'>Login</Link></p>
         </form>
         </div>
         <div>
@@ -96,5 +120,5 @@ function UserLogin() {
   )
 }
 
-export default UserLogin
+export default UserSignup;
 
